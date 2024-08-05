@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: arkhamgpt-web-app
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python flask_app.py"
+    autoDeploy: true
