@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Arkham Horror Card Game Assistant</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Arkham Horror Card Game Assistant</h1>
+        <form method="POST">
+            <div class="input-group">
+                <label for="question">Enter your question:</label>
+                <input type="text" id="question" name="question" required class="input-box">
+            </div>
+            <input type="submit" value="Get Answer" class="submit-button">
+        </form>
+        <h2>Response:</h2>
+        <div class="response-output">
+            {{ response|safe }}
+        </div>
+    </div>
+</body>
+</html>
