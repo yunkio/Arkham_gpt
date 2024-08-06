@@ -8,12 +8,6 @@ from langchain.prompts.chat import (
 )
 from langchain.chains import LLMChain
 from langchain_openai import ChatOpenAI
-import os
-import openai
-client = openai.OpenAI(
-    # OPEN API KEY 설정
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
 
 app = Flask(__name__)
 
