@@ -68,8 +68,8 @@ def index():
         retrieved_contents = " ".join([p.page_content for p in retrieved_pages])
         chain = LLMChain(llm=chat, prompt=chat_prompt)
         response = chain.run(question=question, docs=retrieved_contents)
-        # 마크다운을 HTML로 변환
-        response_html = markdown.markdown(response)
+        # 마크다운을 HTML로 변환하며, 줄바꿈을 <br> 태그로 변환
+        response_html = markdown.markdown(response, extensions=['nl2br'])
         return render_template('index.html', response=response_html)
     return render_template('index.html', response='')
 
