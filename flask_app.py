@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for, session
 from flask_socketio import SocketIO, emit
 from langchain.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
@@ -11,13 +11,19 @@ from langchain.chains import LLMChain
 from langchain_openai import ChatOpenAI
 import os
 import openai
+import bcrypt
+
 client = openai.OpenAI(
     # OPEN API KEY 설정
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "default_secret_key")  # 세션을 위한 비밀키 설정
 socketio = SocketIO(app)  # Create a SocketIO instance
+
+# 해시된 비밀번호 (미리 생성된 값을 사용)
+hashed_password = b'$2b$12$PYwereRO4g.y0QMN6/wT9eADpjXAYNLAigARt7S7zFuwstaWyvzPG'
 
 # Embeddings 및 FAISS 로드
 embeddings = OpenAIEmbeddings()
@@ -27,7 +33,7 @@ db = FAISS.load_local('./faiss', embeddings, allow_dangerous_deserialization=Tru
 chat = ChatOpenAI(model_name="gpt-4o", temperature=0.5)
 
 system_template = """
-You are a helpful assistant that that can answer questions about Arkham Horror Card Game
+You are a helpful assistant that can answer questions about Arkham Horror Card Game
 based on the following document:{docs}.
 Only use the factual information from the document to answer the question.
 considering each of the following conditions step by step.
@@ -52,6 +58,9 @@ chat_prompt = ChatPromptTemplate.from_messages(
 # 홈 페이지
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    if not session.get('authenticated'):
+        return redirect(url_for('login'))
+
     if request.method == 'POST':
         question = request.form['question']
         retrieved_pages = db.similarity_search(question, k=20)
@@ -61,7 +70,18 @@ def index():
         return render_template('index.html', response=response)
     return render_template('index.html', response='')
 
+# 로그인 페이지
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        password = request.form['password']
+        if bcrypt.checkpw(password.encode(), hashed_password):
+            session['authenticated'] = True
+            return redirect(url_for('index'))
+        else:
+            return render_template('login.html', error='Incorrect password.')
+    return render_template('login.html')
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     socketio.run(app, host='0.0.0.0', port=port, allow_unsafe_werkzeug=True)
-    
