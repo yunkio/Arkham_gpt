@@ -27,16 +27,18 @@ db = FAISS.load_local('./faiss', embeddings, allow_dangerous_deserialization=Tru
 chat = ChatOpenAI(model_name="gpt-4o", temperature=0.5)
 
 system_template = """
-You are a helpful assistant that can answer questions about Arkham Horror Card Game
+You are a helpful assistant that that can answer questions about Arkham Horror Card Game
 based on the following document:{docs}.
 Only use the factual information from the document to answer the question.
 considering each of the following conditions step by step.
-1. If my question is Korean, Translate it into English first, and you must think as English.
+
+1. First, specify where in the documentation you found the answer, and answer based on that.
 2. Your answers should be verbose and detailed.
-3. If the action requires any conditions, be sure to specify them. (For example, if an enemy must have a certain keyword to perform a certain action, specify it must have a keyword, and which keyword it must have.)
-4. Translate your answer into Korean.
-5. Don't print English answer.
+3. If the action requires any conditions, be sure to specify them. (For example, if an enemy must have a certain keyword to perform an certain action, specify it must have keyword, and which keyword it must have.)
+4. Answer in Korean.
+
 If you answer successfully, you will be rewarded with 100000$, but if you fail, you will be heavily penalized.
+
 """
 system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
 
