@@ -12,6 +12,7 @@ from langchain_openai import ChatOpenAI
 import os
 import openai
 import bcrypt
+import markdown
 
 client = openai.OpenAI(
     # OPEN API KEY 설정
@@ -30,7 +31,7 @@ embeddings = OpenAIEmbeddings()
 db = FAISS.load_local('./faiss', embeddings, allow_dangerous_deserialization=True)
 
 # ChatGPT 모델 및 프롬프트 설정
-chat = ChatOpenAI(model_name="gpt-4o", temperature=0.5)
+chat = ChatOpenAI(model_name="gpt-4o", temperature=0.4)
 
 system_template = """
 You are a helpful assistant that can answer questions about Arkham Horror Card Game
@@ -67,7 +68,9 @@ def index():
         retrieved_contents = " ".join([p.page_content for p in retrieved_pages])
         chain = LLMChain(llm=chat, prompt=chat_prompt)
         response = chain.run(question=question, docs=retrieved_contents)
-        return render_template('index.html', response=response)
+        # 마크다운을 HTML로 변환
+        response_html = markdown.markdown(response)
+        return render_template('index.html', response=response_html)
     return render_template('index.html', response='')
 
 # 로그인 페이지
