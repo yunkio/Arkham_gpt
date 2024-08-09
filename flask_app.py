@@ -101,7 +101,7 @@ def index():
         )
         
         #response
-        retrieved_docs = retriever.get_relevant_documents(question)
+        retrieved_docs = ensemble_retriever.get_relevant_documents(question)
         response = rag_chain.invoke({"context": retrieved_docs, "question": question})
         response_html = markdown.markdown(response, extensions=['nl2br'])
         return render_template('index.html', response=response_html)
