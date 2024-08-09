@@ -84,7 +84,7 @@ def index():
         question = request.form['question']
 
         # retriever
-        k = 5
+        k = 4
 #        retriever = vectorstore.as_retriever(search_kwargs={"k": k})
         bm25_retriever = BM25Retriever.from_documents(split_docs)
         bm25_retriever.k = k
