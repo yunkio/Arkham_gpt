@@ -74,30 +74,12 @@ def index():
     if request.method == 'POST':
         # query
         question = request.form['question']
-        
-        # pdf file load
-        from langchain_community.document_loaders import PyPDFDirectoryLoader
-        loader = PyPDFDirectoryLoader("data/")
-        
-        # documents load
-        from langchain_text_splitters import RecursiveCharacterTextSplitter
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        split_docs = loader.load_and_split(text_splitter=text_splitter)
-        
-        # embedding
-        from langchain_openai import OpenAIEmbeddings
-        from langchain.vectorstores import FAISS
-        vectorstore = FAISS.from_documents(documents=split_docs, embedding=OpenAIEmbeddings())
-        
+
         # retriever
         k = 5
-        bm25_retriever = BM25Retriever.from_documents(split_docs)
-        bm25_retriever.k = k
         faiss_vectorstore = FAISS.from_documents(split_docs, OpenAIEmbeddings())
-        faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": k})
-        ensemble_retriever = EnsembleRetriever(
-            retrievers=[bm25_retriever, faiss_retriever], weights=[0.5, 0.5]
-        )
+        retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": k})
+
         #rag_chain
         rag_chain = (
         {"context": itemgetter("context"), "question": itemgetter("question")}
@@ -106,7 +88,7 @@ def index():
         | StrOutputParser()
         )
         #response
-        retrieved_docs = ensemble_retriever.get_relevant_documents(question)
+        retrieved_docs = retriever.get_relevant_documents(question)
         response = rag_chain.invoke({"context": retrieved_docs, "question": question})
         response_html = markdown.markdown(response, extensions=['nl2br'])
         return render_template('index.html', response=response_html)
