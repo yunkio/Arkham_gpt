@@ -88,8 +88,7 @@ def index():
 #        retriever = vectorstore.as_retriever(search_kwargs={"k": k})
         bm25_retriever = BM25Retriever.from_documents(split_docs)
         bm25_retriever.k = k
-        faiss_vectorstore = FAISS.from_documents(split_docs, OpenAIEmbeddings())
-        faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": k})
+        faiss_retriever = vectorstore.as_retriever(search_kwargs={"k": k})
         ensemble_retriever = EnsembleRetriever(
             retrievers=[bm25_retriever, faiss_retriever], weights=[0.5, 0.5]
         )
