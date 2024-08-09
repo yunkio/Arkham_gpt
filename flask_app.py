@@ -7,6 +7,7 @@ from langchain.prompts.chat import (
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
+from langchain_community.document_transformers import LongContextReorder
 from langchain.chains import LLMChain
 from langchain_openai import ChatOpenAI
 from langchain.retrievers import BM25Retriever, EnsembleRetriever
@@ -16,6 +17,7 @@ import os
 import openai
 import bcrypt
 import markdown
+import pickle
 
 client = openai.OpenAI(
     # OPEN API KEY 설정
@@ -32,17 +34,15 @@ hashed_password = b'$2b$12$PYwereRO4g.y0QMN6/wT9eADpjXAYNLAigARt7S7zFuwstaWyvzPG
 # Embeddings 및 FAISS 로드
 embeddings = OpenAIEmbeddings()
 vectorstore = FAISS.load_local('./faiss', embeddings, allow_dangerous_deserialization=True)
-
+    
 # ChatGPT 모델 및 프롬프트 설정
 llm = ChatOpenAI(model_name="gpt-4o", temperature=0.4)
 
-from langchain_community.document_loaders import PyPDFDirectoryLoader
-loader = PyPDFDirectoryLoader("data/")
+# 문서 불러오기
+with open('split_docs.pkl', 'rb') as f:
+    split_docs = pickle.load(f)
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-split_docs = loader.load_and_split(text_splitter=text_splitter)
-
+# 템플릿 설계
 system_template="""
 # your role
 You are a brilliant expert at understanding the intent of the questioner and the crux of the question about 'Arkham Horror Card Game', and providing the most optimal answer to the questioner's needs from the documents you are given.
