@@ -74,6 +74,21 @@ def index():
     if request.method == 'POST':
         # query
         question = request.form['question']
+        
+        # pdf file load
+        from langchain_community.document_loaders import PyPDFDirectoryLoader
+        loader = PyPDFDirectoryLoader("data/")
+        
+        # documents load
+        from langchain_text_splitters import RecursiveCharacterTextSplitter
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        split_docs = loader.load_and_split(text_splitter=text_splitter)
+        
+        # embedding
+        from langchain_openai import OpenAIEmbeddings
+        from langchain.vectorstores import FAISS
+        vectorstore = FAISS.from_documents(documents=split_docs, embedding=OpenAIEmbeddings())
+        
         # retriever
         k = 5
         bm25_retriever = BM25Retriever.from_documents(split_docs)
