@@ -18,7 +18,7 @@ import openai
 import bcrypt
 import markdown
 import pickle
-
+ 
 client = openai.OpenAI(
     # OPEN API KEY 설정
     api_key=os.environ.get("OPENAI_API_KEY"),
@@ -85,24 +85,29 @@ def index():
 
         # retriever
         k = 4
-#        retriever = vectorstore.as_retriever(search_kwargs={"k": k})
         bm25_retriever = BM25Retriever.from_documents(split_docs)
         bm25_retriever.k = k
         faiss_retriever = vectorstore.as_retriever(search_kwargs={"k": k})
         ensemble_retriever = EnsembleRetriever(
             retrievers=[bm25_retriever, faiss_retriever], weights=[0.5, 0.5]
         )
-        #rag_chain
+        # docs
+        def format_docs(docs):
+            return "\n\n".join(doc.page_content for doc in docs)
+        retrieved_docs = ensemble_retriever.get_relevant_documents(question)
+        reordering = LongContextReorder()
+        reordered_docs = reordering.transform_documents(retrieved_docs)
+        result_docs = format_docs(reordered_docs)
+        
+        # rag_chain   
         rag_chain = (
         {"context": itemgetter("context"), "question": itemgetter("question")}
         | prompt
         | llm
         | StrOutputParser()
         )
-        
         #response
-        retrieved_docs = ensemble_retriever.get_relevant_documents(question)
-        response = rag_chain.invoke({"context": retrieved_docs, "question": question})
+        response = rag_chain.invoke({"context": result_docs, "question": question})
         response_html = markdown.markdown(response, extensions=['nl2br'])
         return render_template('index.html', response=response_html)
     return render_template('index.html', response='')
