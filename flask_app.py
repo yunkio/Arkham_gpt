@@ -36,6 +36,13 @@ vectorstore = FAISS.load_local('./faiss', embeddings, allow_dangerous_deserializ
 # ChatGPT 모델 및 프롬프트 설정
 llm = ChatOpenAI(model_name="gpt-4o", temperature=0.4)
 
+from langchain_community.document_loaders import PyPDFDirectoryLoader
+loader = PyPDFDirectoryLoader("data/")
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+split_docs = loader.load_and_split(text_splitter=text_splitter)
+
 system_template="""
 # your role
 You are a brilliant expert at understanding the intent of the questioner and the crux of the question about 'Arkham Horror Card Game', and providing the most optimal answer to the questioner's needs from the documents you are given.
@@ -54,7 +61,8 @@ Retrieved Context:
 2. Choose the most relevant content(the key content that directly relates to the question) from the retrieved context and use it to generate an answer.
 3. Keep the answer concise but logical/natural/in-depth.
 4. 만약 조건에 특정 키워드가 필요한 경우라면 키워드가 필요한지 여부와, 어떤 키워드가 필요한지를 반드시 명시해줘. 키워드는 매우매우 중요하므로 이 규칙은 반드시 지켜야해. 예를 들면, 적이 어떤 행동을 하기 위해서는 특정 키워드가 필요한 경우, 어떤 키워드가 필요한 지에 대해 명시해줘.
-5. 답변을 한국어로만 해.
+5. 문장에 대해 주의해서 잘 해석해. '~~ 외에 다른 행동을 수행할 때' 같은 표현에 대해 해석할 때 너가 맞게 해석했는지 여러번 한번 확인해.
+6. 답변을 한국어로만 해.
 """
 system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
 
@@ -77,8 +85,14 @@ def index():
 
         # retriever
         k = 5
-        retriever = vectorstore.as_retriever(search_kwargs={"k": k})
-
+#        retriever = vectorstore.as_retriever(search_kwargs={"k": k})
+        bm25_retriever = BM25Retriever.from_documents(split_docs)
+        bm25_retriever.k = k
+        faiss_vectorstore = FAISS.from_documents(split_docs, OpenAIEmbeddings())
+        faiss_retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": k})
+        ensemble_retriever = EnsembleRetriever(
+            retrievers=[bm25_retriever, faiss_retriever], weights=[0.5, 0.5]
+        )
         #rag_chain
         rag_chain = (
         {"context": itemgetter("context"), "question": itemgetter("question")}
