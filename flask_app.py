@@ -34,7 +34,7 @@ embeddings = OpenAIEmbeddings()
 vectorstore = FAISS.load_local('./faiss', embeddings, allow_dangerous_deserialization=True)
 
 # ChatGPT 모델 및 프롬프트 설정
-chat = ChatOpenAI(model_name="gpt-4o", temperature=0.4)
+llm = ChatOpenAI(model_name="gpt-4o", temperature=0.4)
 
 system_template="""
 # your role
