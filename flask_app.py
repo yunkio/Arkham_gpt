@@ -61,7 +61,7 @@ system_message_prompt = SystemMessagePromptTemplate.from_template(system_templat
 human_template = "Answer the following question: {question}"
 human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
 
-chat_prompt = ChatPromptTemplate.from_messages(
+prompt = ChatPromptTemplate.from_messages(
     [system_message_prompt, human_message_prompt]
 )
 
