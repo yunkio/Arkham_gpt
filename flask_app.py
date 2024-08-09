@@ -61,7 +61,7 @@ Retrieved Context:
 2. Choose the most relevant content(the key content that directly relates to the question) from the retrieved context and use it to generate an answer.
 3. Keep the answer concise but logical/natural/in-depth.
 4. 만약 조건에 특정 키워드가 필요한 경우라면 키워드가 필요한지 여부와, 어떤 키워드가 필요한지를 반드시 명시해줘. 키워드는 매우매우 중요하므로 이 규칙은 반드시 지켜야해. 예를 들면, 적이 어떤 행동을 하기 위해서는 특정 키워드가 필요한 경우, 어떤 키워드가 필요한 지에 대해 명시해줘.
-5. 문장에 대해 주의해서 잘 해석해. '~~ 외에 다른 행동을 수행할 때' 같은 표현에 대해 해석할 때 너가 맞게 해석했는지 여러번 한번 확인해.
+5. 틈새공격의 경우, '회피, 전투, 협상, 후퇴' 을 할 경우 발동되지 않아. 앞의 4가지 행동 이외의 행동을 할때 발동하는게 틈새공격이야. '외에' 라는 표현을 해석을 잘 해야해.
 6. 답변을 한국어로만 해.
 """
 system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
