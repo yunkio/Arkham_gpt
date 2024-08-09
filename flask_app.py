@@ -31,7 +31,7 @@ hashed_password = b'$2b$12$PYwereRO4g.y0QMN6/wT9eADpjXAYNLAigARt7S7zFuwstaWyvzPG
 
 # Embeddings 및 FAISS 로드
 embeddings = OpenAIEmbeddings()
-db = FAISS.load_local('./faiss', embeddings, allow_dangerous_deserialization=True)
+vectorstore = FAISS.load_local('./faiss', embeddings, allow_dangerous_deserialization=True)
 
 # ChatGPT 모델 및 프롬프트 설정
 chat = ChatOpenAI(model_name="gpt-4o", temperature=0.4)
@@ -77,8 +77,7 @@ def index():
 
         # retriever
         k = 5
-        faiss_vectorstore = FAISS.from_documents(split_docs, OpenAIEmbeddings())
-        retriever = faiss_vectorstore.as_retriever(search_kwargs={"k": k})
+        retriever = vectorstore.as_retriever(search_kwargs={"k": k})
 
         #rag_chain
         rag_chain = (
@@ -87,6 +86,7 @@ def index():
         | llm
         | StrOutputParser()
         )
+        
         #response
         retrieved_docs = retriever.get_relevant_documents(question)
         response = rag_chain.invoke({"context": retrieved_docs, "question": question})
